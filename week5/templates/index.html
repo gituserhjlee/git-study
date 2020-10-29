@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css2?family=Song+Myung&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+
+    <title>나의 쇼핑몰 </title>
+
+
+    <style type="text/css">
+        * {
+            font-family: 'Song Myung', serif;
+        }
+
+        .wrap {
+            width: 600px;
+            margin: 10px auto;
+            border: 3px solid black;
+            padding: 20px;
+
+
+        }
+
+        .img {
+            background-image: url('https://story.holapet.com/wp-content/uploads/2018/12/vs201812-so008-2.jpg');
+            background-size: cover;
+            background-position: center;
+            margin: 10px auto;
+            width: 500px;
+            height: 400px;
+        }
+
+        .info {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1, h5 {
+            display: inline;
+        }
+
+        h5 {
+            margin: 0 10px;
+        }
+
+        .order {
+            text-align: center;
+        }
+
+        .blue {
+            color: blue;
+        }
+        .table{
+            margin-top: 20px;
+        }
+
+    </style>
+
+    <script>
+        function order() {
+            let regExp = /^\d{3}-\d{3,4}-\d{4}$/;
+            let name = $('#order-name').val()
+            let count = $('#order-count').val()
+            let taste = $('#order-taste').val()
+            let address = $('#order-address').val()
+            let number = $('#order-phone').val()
+
+            if (name === '') {
+                alert('이름을 입력해주세요')
+                return
+            }
+            else if (address === '') {
+                alert('주소를 입력해주세요')
+                return
+            }
+            else if (number === '') {
+                alert('전화번호를 입력해주세요')
+                return
+            }
+            else if (!regExp.test(number)) {
+                alert('전화번호 형식을 지켜주세요 000-0000-0000')
+                return
+            }
+            else
+                alert('주문이 완료되었습니다.')
+
+            $.ajax({
+                type: "POST",
+                url: "/order",
+                data: {
+                    'name': name,
+                    'count': count,
+                    'taste': taste,
+                    'address': address,
+                    'number': number
+                },
+                success: function (response) { // 성공하면
+                    if (response["result"] === "success") {
+                        window.location.reload()
+
+                    }
+                }
+            })
+
+        }
+
+
+        $(document).ready(function () {
+            showOrders();
+
+            $.ajax({
+                type: "GET",
+                url: "https://api.manana.kr/exchange/rate.json",
+                success: function (response) {
+                    let rate = response[1]["rate"];
+                    let tempHtml = `<div class="blue">달러-원 환율:${rate}</div>`
+                    $('#introduce').append(tempHtml);
+
+                }
+            })
+        });
+
+        function showOrders() {
+            $.ajax({
+                type: "GET",
+                url: "/order",
+                data: {},
+                success: function (response) {
+                    if (response["result"] === "success") {
+                        let orders = response['orders']
+                        for (let i = 0; i < orders.length; i++) {
+                            let order = orders[i]
+                            let name = order['name']
+                            let count = order['count']
+                            let taste = order['taste']
+                            let address = order['address']
+                            let number = order['number']
+                            let temp = `
+                            <tr>
+                                <td>${name}</td>
+                                <td>${count}</td>
+                                <td>${taste}</td>
+                                <td>${address}</td>
+                                <td>${number}</td>
+                            </tr>
+                            `
+                            $('#list').append(temp)
+
+                        }
+                    }
+                }
+            })
+
+        }
+    </script>
+</head>
+<body>
+<div class="wrap">
+    <div class="img"></div>
+    <div class="info">
+        <div class="introduce" id="introduce">
+            <h1>유기농 강아지 간식</h1>
+            <h5>가격: 7,000원/개</h5>
+            <p>이 강아지 간식은 유기농으로 만들어져 알러지가 있는 아이들도 안심하고 먹일 수 있어요^^ 피부병으로 고생하는 아이들에게 유기농 간식을 급여해보세요~유기농이라 값은 살짝 나갑니다</p>
+        </div>
+        <h1>주문하기</h1>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="order-name">주문자 성함</label>
+            </div>
+            <input type="text" class="form-control" id="order-name">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="order-count">수량</label>
+            </div>
+            <select class="form-control" id="order-count">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+
+            </select>
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="order-taste">맛</label>
+            </div>
+            <select class="form-control" id="order-taste">
+                <option>베이컨</option>
+                <option>클로렐라</option>
+                <option>블루베리</option>
+
+            </select>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="order-address">주소</label>
+            </div>
+            <input type="text" class="form-control" id="order-address">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="order-phone">전화번호</label>
+            </div>
+            <input type="text" class="form-control" id="order-phone">
+        </div>
+
+        <div class="order">
+            <button onclick="order()" type="button" class="btn btn-primary">주문하기</button>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">이름</th>
+                <th scope="col">수량</th>
+                <th scope="col">맛</th>
+                <th scope="col">주소</th>
+                <th scope="col">연락처</th>
+            </tr>
+            </thead>
+            <tbody id="list">
+
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+</body>
+</html>
